@@ -1,25 +1,17 @@
-require 'wavefile'
 require 'fftw3'
-include WaveFile
-
-# Reads wave file into reader class
-reader = Reader.new("a110.wav")
-
-# Reads duration of file and total samples and calculates sample rate from those values
-duration = reader.total_duration()
-seconds = duration.seconds
-milliseconds = (duration.milliseconds.to_f)/1000
-formatted_duration = seconds + milliseconds
-samplesize = reader.total_sample_frames()
-samplerate = samplesize/formatted_duration
+require_relative 'live_audio'
 
 # decides a size for the buffer, and then reads that into an array
-buffersize = samplesize/2
-buffer = reader.read(buffersize)
-sample_array = buffer.samples
-
+duration = 2
+sample_rate = 44100.0
+sample_array = record(duration, sample_rate)
+raise "Samples not Returned" if sample_array == []
 # Calculates the frequency resolution
-freq_res = samplerate/buffersize
+samplesize = sample_array.length()
+puts samplesize
+puts sample_rate
+freq_res = sample_rate/samplesize
+puts freq_res
 
 # Performs the fast fourier transform and converts to normal ruby array
 fft = FFTW3.fft(sample_array)
@@ -57,5 +49,5 @@ sorted_mag_array, sorted_freq_array = sorted_matrix.transpose
 puts "Max Frequency is #{sorted_freq_array[0]}"
 puts "Second Frequency is #{sorted_freq_array[1]}, which is an interval of #{sorted_freq_array[1]/sorted_freq_array[0]}"
 puts "Third Frequency is #{sorted_freq_array[2]}, which is an interval of #{sorted_freq_array[2]/sorted_freq_array[1]}"
-puts "Sample Rate is #{samplerate}"
+puts "Sample Rate is #{sample_rate}"
 puts "Sample Size is #{samplesize}"
